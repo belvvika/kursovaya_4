@@ -6,30 +6,57 @@ from abc import ABC, abstractmethod
 
 class ApiSites(ABC):
     @abstractmethod
-    def get_api(self):
-        pass
+    def __init__(self):
+        self.api_hh = 'https://api.hh.ru'
+        self.api_sj = 'https://api.superjob.ru/2.0/vacancies/'
 
 class Vacancy:
-    def __init__(self, name, description, salary):
+    def __init__(self, name, title, salary):
         self.name = name
-        self.description = description
+        self.title = title
         self.salary = salary
 
+    def __repr__(self):
+        return f"Vacancy(name='{self.name}', title='{self.title}', salary='{self.salary}')"
 
-class Platforms(ApiSites, Vacancy):
-    def __init__(self, name, description, salary):
-        super().__init__(name, description, salary)
+    def __str__(self):
+        return self.title
 
-        self.url_hh = 'https://api.hh.ru'
-        self.url_sj = 'https://api.superjob.ru/2.0/vacancies/'
+    def __gt__(self, other):
+        return self.salary > other.salary
+
+    def __lt__(self, other):
+        if other.salary is None:
+            return False
+        if self.salary is None:
+            return True
+        return self.salary < other.salary
+
+
+# if __name__ == '__main__':
+#     v1 = Vacancy('name', 'title', 'salary')
+#
+#     v2 = Vacancy('name', 'title', 'salary')
+#
+#     v3 = Vacancy('name', 'title', 'salary')
+#
+#     vacancies = [v1, v2, v3]
+#
+#     vv = sorted(vacancies)
+#
+#     print(vv)
+
+class HH(ApiSites, Vacancy):
+    def __init__(self, name, title, salary):
+        super().__init__(name, title, salary)
 
     def get_vacancy_hh(self):
-        list_hh = requests.get(f'{self.url_hh}/vacancies',params={'text': self.name, 'description': self.description, 'salary': self.salary}).json()
-        return list_hh
-
-    def get_vacancy_sj(self):
-        list_sj = requests.get(f'{self.url_sj}/vacancies',params={'text': self.name, 'description': self.description, 'salary': self.salary}).json()
-        return list_sj
+        try:
+            list_hh = requests.get(f'{self.api_hh}/vacancies',params={'name': self.name, 'title': self.title, 'salary': self.salary}).json()
+            return list_hh
+        except requests.exceptions.HTTPError as errh:
+            print("Такой страницы не существует.")
+            print(errh.args[0])
 
     def vacancies_hh(self):
         """Проходим циклом по словарю берем из словаря только нужные нам данные и записываем их в переменную """
@@ -49,6 +76,17 @@ class Platforms(ApiSites, Vacancy):
 
         return vacancies_hh
 
+class SJ(ApiSites, Vacancy):
+    def __init__(self, name, title, salary):
+        super().__init__(name, title, salary)
+
+    def get_vacancy_sj(self):
+        try:
+            list_sj = requests.get(f'{self.api_sj}/vacancies',params={'name': self.name, 'title': self.title, 'salary': self.salary}).json()
+            return list_sj
+        except requests.exceptions.HTTPError as errh:
+            print("Такой страницы не существует.")
+            print(errh.args[0])
     def vacancies_sj(self):
         """Проходим циклом по словарю берем из словаря только нужные нам данные и записываем их в переменную 'vacancy_list_SJ' """
         data = self.get_vacancy_sj()
@@ -66,26 +104,29 @@ class Platforms(ApiSites, Vacancy):
             }
             vacancy_SJ.append(super_job)
         return vacancy_SJ
+def json_file():
+    with open('Jobs.json', 'w', encoding='utf-8') as file:
+        json.dump(combined_dict, file, ensure_ascii=False, indent=2)
 
 def user_interaction():
     name = input('Введите вакансию: ')
     salary = input("Введити желаему заработную плату: ")
-    description = input()
-    platform = Platforms(name, description, salary)
-    combined_dict = {'HH': platform.vacancies_hh(), 'SJ': platform.vacancies_sj()}
+    title = input()
+    hh = HH(name, title, salary)
+    sj = SJ(name, title, salary)
 
-    with open('Jobs.json', 'w', encoding='utf-8') as file:
-        json.dump(combined_dict, file, ensure_ascii=False, indent=2)
+    combined_dict = {'HH': hh.vacancies_hh(), 'SJ': sj.vacancies_sj()}
 
-    platform.description = description
-    hh_data = platform.vacancies_hh()
-    sj_data = platform.vacancies_sj()
+    hh_data = hh.vacancies_hh()
+    sj_data = sj.vacancies_sj()
+
+    hh.title = title
+    sj.title = title
 
     combined_dict['HH'] = hh_data
     combined_dict['SJ'] = sj_data
 
-    with open('Jobs.json', 'w', encoding='utf-8') as file:
-        json.dump(combined_dict, file, ensure_ascii=False, indent=2)
+    json_file()
 
     for platform, data in combined_dict.items():
         print(f"\n \033Платформа: {platform}")
@@ -94,7 +135,7 @@ def user_interaction():
 
     a = input('перейти на следующую страницу? y/n ')
     if a == 'y':
-        description += 1
+        title += 1
 
 if __name__ == "__main__":
     user_interaction()
