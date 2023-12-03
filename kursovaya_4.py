@@ -114,15 +114,11 @@ def user_interaction():
     title = input()
     hh = HH(name, title, salary)
     sj = SJ(name, title, salary)
-
     combined_dict = {'HH': hh.vacancies_hh(), 'SJ': sj.vacancies_sj()}
-
     hh_data = hh.vacancies_hh()
     sj_data = sj.vacancies_sj()
-
     hh.title = title
     sj.title = title
-
     combined_dict['HH'] = hh_data
     combined_dict['SJ'] = sj_data
 
