@@ -1,12 +1,12 @@
-from ABC import ApiSites
-
+from dotenv import load_dotenv
+# from hh_and_sj import HH, SJ
+from AbstractSites import ApiSites
+load_dotenv('.env')
 class Vacancy(ApiSites):
     def __init__(self, name, title, salary):
         self.name = name
         self.title = title
         self.salary = salary
-        self.api_hh = 'https://api.hh.ru'
-        self.api_sj = 'https://api.superjob.ru/2.0/vacancies/'
 
     def __repr__(self):
         return f"Vacancy(name='{self.name}', title='{self.title}', salary='{self.salary}')"
@@ -23,3 +23,14 @@ class Vacancy(ApiSites):
         if self.salary is None:
             return True
         return self.salary < other.salary
+
+    def get_vacancies(self):
+        pass
+
+    def load_vacancies(self):
+        pass
+
+    def to_json(self):
+        pass
+
+

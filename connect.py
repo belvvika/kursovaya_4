@@ -1,4 +1,5 @@
 import json
+import os
 class Connector:
     """
     Класс коннектор к файлу
