@@ -1,5 +1,4 @@
 from dotenv import load_dotenv
-# from hh_and_sj import HH, SJ
 from AbstractSites import ApiSites
 load_dotenv('.env')
 class Vacancy(ApiSites):
